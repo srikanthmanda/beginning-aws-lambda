@@ -1,0 +1,12 @@
+{
+  "name": "beginning-aws-lambda",
+  "description": "A repo to learn basics of AWS Lambda",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@octokit/request": "^5.4.9",
+    "aws-sdk": "^2.771.0"
+  },
+  "devDependencies": {},
+  "scripts": {}
+}
