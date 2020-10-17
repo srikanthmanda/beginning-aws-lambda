@@ -1,0 +1,11 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "beginning-lambda"
+s3_prefix = "beginning-lambda"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "awsDocsRepoBucketName=\"0fef02b1-1c46-435a-a0e7-945a233f19a5\" AwsSdkLayerStackName=\"lib-aws-sdk\""
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1e5vv9owochtc"

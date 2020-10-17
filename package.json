@@ -4,9 +4,13 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@octokit/request": "^5.4.9",
-    "aws-sdk": "^2.771.0"
+    "@octokit/request": "^5.4.9"
   },
-  "devDependencies": {},
-  "scripts": {}
+  "devDependencies": {
+    "aws-sdk": "2.771.0"
+  },
+  "scripts": {
+    "build-aws-sdk-layer": "cd lib-aws-sdk && zip -r ../sam-build/aws-sdk.zip nodejs",
+    "build": "zip -r sam-build/beginning-lambda.zip src node_modules"
+  }
 }

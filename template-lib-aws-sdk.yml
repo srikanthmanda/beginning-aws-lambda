@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Node.js AWS SDK as a Lambda layer, that's this stack.
+
+Transform:
+- AWS::Serverless-2016-10-31
+
+Resources:
+  AwsSdkLayer:
+    Type: "AWS::Serverless::LayerVersion"
+    Properties:
+      LayerName: lib-aws-sdk
+      Description: Node.js AWS SDK layer
+      ContentUri: sam-build/aws-sdk.zip
+      CompatibleRuntimes:
+        - nodejs12.x
+
+Outputs:
+  AwsSdkLayerArn:
+    Description: ARN of AWS SDK layer
+    Value: !Ref AwsSdkLayer
+    Export:
+      Name: !Sub "${AWS::StackName}-arn"

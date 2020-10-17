@@ -5,7 +5,7 @@
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
-  beginning-aws-lambda
+  Beginning AWS Lambda: An exercise in learning basics of Lambda.
 
 # Transform section specifies one or more macros that AWS CloudFormation uses to process your template
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
@@ -22,15 +22,36 @@ Resources:
   getAwsDocsRepo:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: getAwsDocsRepo
       Handler: src/get-awsdocs-repo.handler
+      CodeUri: sam-build/beginning-lambda.zip
       Runtime: nodejs12.x
       MemorySize: 128
       Timeout: 100
-      Description: A Lambda that download AWS Docs repo and uploads to S3.
+      Description: A Lambda that fetches AWS Docs repo from GitHub and uploads to S3.
+      Environment:
+        Variables:
+          AWS_DOCS_REPO_BUCKET:
+            Ref: awsDocsRepoBucketName
       Policies:
         - AWSLambdaBasicExecutionRole
         - AmazonS3FullAccess
+      Layers:
+        - Fn::ImportValue:
+            !Sub "${AwsSdkLayerStackName}-arn"
   awsDocsRepo:
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: 0fef02b1-1c46-435a-a0e7-945a233f19a5
+      BucketName:
+        Ref: awsDocsRepoBucketName
+      AccessControl: Private
+
+Parameters:
+    awsDocsRepoBucketName:
+      Description: Name of the S3 bucket to store AWS docomentation repo.
+      Type: String
+      AllowedPattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+    AwsSdkLayerStackName:
+      Description: Name of the Lambda layer with Node.js AWS SDK
+      Type: String
+      Default: layer-aws-sdk

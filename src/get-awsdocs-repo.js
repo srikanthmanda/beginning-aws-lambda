@@ -1,23 +1,22 @@
-// const fs = require("fs");
 const AWS = require("aws-sdk");
 const { request } = require("@octokit/request");
 
 const s3 = new AWS.S3();
 
-exports.handler = async function (event, context) {
+exports.handler = async function () {
   const repoArchive = await request(
     "GET /repos/:owner/:repo/:archive_format/:ref",
     {
       owner: "awsdocs",
       repo: "aws-cloudformation-user-guide",
       archive_format: "zipball",
-      ref: "master",
+      ref: "main",
     }
   );
   console.debug("repoArchiveURL: " + JSON.stringify(repoArchive));
 
   const s3Params = {
-    Bucket: "0fef02b1-1c46-435a-a0e7-945a233f19a5",
+    Bucket: process.env.AWS_DOCS_REPO_BUCKET,
     Key: "aws-cloudformation-user-guide.zip",
     Body: Buffer.from(repoArchive.data),
   };

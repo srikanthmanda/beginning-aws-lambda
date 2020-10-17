@@ -1,0 +1,6 @@
+{
+  "name": "aws-sdk-lambda-layer",
+  "dependencies": {
+    "aws-sdk": "^2.773.0"
+  }
+}
