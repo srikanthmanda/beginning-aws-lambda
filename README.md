@@ -8,9 +8,9 @@ Following are the components of this [Rube Goldberg application](https://en.wiki
 
 - [x] Lambda function getAwsDocsRepo
 - [x] S3 bucket
-- [ ] Lambda function unzipArchive
+- [x] Lambda function unzipRepoArchive
 - [ ] EFS
-- [ ] SNS (Destination)
+- [x] SNS (Destination)
 - [ ] Lambda function createAttributeFiles
 - [ ] SQS (Destination)
 - [ ] Lambda function createCheatSheet
@@ -19,6 +19,7 @@ Following are the components of this [Rube Goldberg application](https://en.wiki
 ## Notes
 
 - [Lambda](notes/lambda-notes.md)
+- [Deployment](scripts/README.md)
 
 ## Resources
 

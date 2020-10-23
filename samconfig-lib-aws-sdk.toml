@@ -7,4 +7,4 @@ s3_prefix = "lib-aws-sdk"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1e5vv9owochtc"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-nasb5bg3gqu0"

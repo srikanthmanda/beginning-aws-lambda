@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@octokit/request": "^5.4.9"
+    "@octokit/request": "^5.4.9",
+    "yauzl": "^2.10.0"
   },
   "devDependencies": {
     "aws-sdk": "2.771.0"
