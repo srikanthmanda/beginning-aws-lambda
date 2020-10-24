@@ -79,7 +79,7 @@ Resources:
 
 Globals:
   Function:
-    CodeUri: sam-build/beginning-lambda.zip
+    CodeUri: ../sam-build/beginning-lambda.zip
     Runtime: nodejs12.x
     MemorySize: 256
     Timeout: 180

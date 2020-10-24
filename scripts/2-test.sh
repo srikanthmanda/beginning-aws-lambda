@@ -7,6 +7,7 @@ cd $(dirname $0) && cd ..
 DIR_REPO_ROOT=$(pwd)
 DIR_SCRIPTs="${DIR_REPO_ROOT}/scripts"
 DIR_TEST_EVENTS="${DIR_REPO_ROOT}/test-events"
+DIR_SAM_CONFIG="${DIR_REPO_ROOT}/sam-config"
 
 declare -A lambdaFns
 
@@ -44,7 +45,7 @@ function testLambda {
     --payload "${payload}"
 }
 
-prepareLambdaFnsList ${DIR_REPO_ROOT}/template.yml
+prepareLambdaFnsList ${DIR_SAM_CONFIG}/template.yml
 
 while true
 do
