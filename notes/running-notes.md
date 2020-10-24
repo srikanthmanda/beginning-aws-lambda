@@ -1,5 +1,10 @@
 # Running Notes
 
+## AWS CLI
+
+- Configuring the CLI: `aws configure`
+- Getting account details: `aws sts get-caller-identity`
+
 ## SAM CLI Limitation
 
 Due to a [limitation](https://github.com/aws/aws-sam-cli/issues/1701), `sam deploy` requires either:
@@ -9,6 +14,15 @@ Due to a [limitation](https://github.com/aws/aws-sam-cli/issues/1701), `sam depl
 Once you have the S3 bucket to upload your code to, you may -
 - Add it to samconfig TOML files as `s3_bucket = "<aws-sam-cli-managed-default-samclisourcebucket-...>"` OR
 - Add a `--s3-bucket <aws-sam-cli-managed-default-samclisourcebucket-...>` argument to `sam deploy` commands in `1-deploy.sh` script.
+
+### Workaround
+
+S3 bucket creation can automated using AWS CLI using the following command:
+```
+aws s3 mb s3://<aws-sam-cli-managed-default-samclisourcebucket-...>
+```
+
+The created S3 bucket name can be passed as command line argument `--s3-bucket` to `sam deploy` command. 
 
 ## Invoking Lambda functions from CLI
 
