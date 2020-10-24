@@ -19,7 +19,7 @@ Following are the components of this [Rube Goldberg application](https://en.wiki
 ## Notes
 
 - [Lambda](notes/lambda-notes.md)
-- [Deployment](scripts/README.md)
+- [Running Notes](notes/running-notes.md)
 
 ## Resources
 

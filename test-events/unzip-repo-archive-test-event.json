@@ -1,0 +1,14 @@
+{
+	"Records": [
+		{
+			"s3": {
+				"bucket": {
+					"name": "0fef02b1-1c46-435a-a0e7-945a233f19a6"
+				},
+				"object": {
+					"key": "aws-cloudformation-user-guide.zip"
+				}
+			}
+		}
+	]
+}
