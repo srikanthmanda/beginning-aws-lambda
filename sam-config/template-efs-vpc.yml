@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+  - AWS::Serverless-2016-10-31
+
+Resources:
+  lambdaEfs:
+    Type: "AWS::EFS::FileSystem"
+    Properties:
+      FileSystemTags:
+        - Key: Name
+          Value: lambdaEfs
+      PerformanceMode: generalPurpose
+
+  efsVpc:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      Tags:
+        - Key: Name
+          Value: lambdaEfsVpc
+
+  efsPrivateSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref "AWS::Region"
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: lambdaEfsPrivateSubnet
+      VpcId: !Ref efsVpc
+
+  efsVpcPrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref efsVpc
+      Tags:
+        - Key: Name
+          Value: lambdaEfsPrivateRouteTable
+
+  efsVpcSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref efsPrivateSubnet
+      RouteTableId: !Ref efsVpcPrivateRouteTable
+
+  efsMountTarget:
+    Type: "AWS::EFS::MountTarget"
+    Properties:
+      FileSystemId: !Ref lambdaEfs
+      SecurityGroups:
+        - !GetAtt efsVpc.DefaultSecurityGroup
+      SubnetId: !Ref efsPrivateSubnet
+
+  lambdaEfsAccessPt:
+    Type: "AWS::EFS::AccessPoint"
+    Properties:
+      FileSystemId: !Ref lambdaEfs
+      PosixUser:
+        Uid: "1000"
+        Gid: "1000"
+      RootDirectory:
+        CreationInfo:
+          OwnerGid: "1000"
+          OwnerUid: "1000"
+          Permissions: "0777"
+        Path: "/lambda"
+
+  lambdaS3VpcEndPt:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      RouteTableIds:
+        - !Ref efsVpcPrivateRouteTable
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.s3"
+      VpcEndpointType: Gateway
+      VpcId: !Ref efsVpc
+
+Outputs:
+  efsVpcArn:
+    Description: ARN of custom VPC with EFS endpoit
+    Value: !GetAtt lambdaEfsAccessPt.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-access-pt-arn"
+  vpcSubnetId:
+    Description: EFS VPC private subnet id
+    Value: !Ref efsPrivateSubnet
+    Export:
+      Name: !Sub "${AWS::StackName}-subnet-id"
+  vpcSecurityGroupId:
+    Description: EFS VPC Security Group id
+    Value: !GetAtt efsVpc.DefaultSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-secgroup-id"

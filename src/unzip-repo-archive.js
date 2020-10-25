@@ -10,6 +10,9 @@ const unzipDir = rootDir + "/" + repoDir;
 
 if (!fs.existsSync(unzipDir)) {
   fs.mkdirSync(unzipDir);
+  console.info(`Created directory: ${unzipDir}`);
+} else {
+  console.info(`Directory ${unzipDir} exists.`);
 }
 
 exports.handler = async function (event) {
