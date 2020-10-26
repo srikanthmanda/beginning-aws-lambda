@@ -12,7 +12,7 @@ Following are the components of this [Rube Goldberg application](https://en.wiki
 - [x] EFS
 - [x] SNS (Destination)
 - [ ] Lambda function createAttributeFiles
-- [ ] SQS (Destination)
+- [x] SQS ~~(Destination)~~
 - [ ] Lambda function createCheatSheet
 - [ ] S3 static site
 

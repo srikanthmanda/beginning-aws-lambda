@@ -5,7 +5,9 @@ const unzip = require("yauzl");
 const s3 = new AWS.S3();
 
 const rootDir = process.env.EFS_PATH ? process.env.EFS_PATH : "/tmp";
-const repoDir = "aws-cloudformation-user-guide";
+const repoDir = process.env.REPO_PATH
+  ? process.env.REPO_PATH
+  : "aws-cloudformation-user-guide";
 const unzipDir = rootDir + "/" + repoDir;
 
 if (!fs.existsSync(unzipDir)) {

@@ -1,5 +1,7 @@
 # This is the SAM template that represents the architecture of your serverless application
 # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
+# https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
 
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
 AWSTemplateFormatVersion: 2010-09-09
@@ -7,12 +9,16 @@ Description: >-
   Beginning AWS Lambda: An exercise in learning basics of Lambda.
 
 Transform:
-- AWS::Serverless-2016-10-31
+  - AWS::Serverless-2016-10-31
 
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
+  awsDocsRepo:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: awsDocsRepoBucketName
+      AccessControl: Private
 
-  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
   getAwsDocsRepo:
     Type: AWS::Serverless::Function
     Properties:
@@ -47,10 +53,10 @@ Resources:
             Filter:
               S3Key:
                 Rules:
-                - Name: prefix
-                  Value: aws-cloudformation-user-guide
-                - Name: suffix
-                  Value: zip
+                  - Name: prefix
+                    Value: aws-cloudformation-user-guide
+                  - Name: suffix
+                    Value: zip
       EventInvokeConfig:
         MaximumEventAgeInSeconds: 60
         MaximumRetryAttempts: 2
@@ -65,16 +71,13 @@ Resources:
         - AmazonElasticFileSystemClientFullAccess
       VpcConfig:
         SecurityGroupIds:
-          - Fn::ImportValue:
-              !Sub "${lambdaEfsStack}-secgroup-id"
+          - Fn::ImportValue: !Sub "${lambdaEfsStack}-secgroup-id"
         SubnetIds:
-          - Fn::ImportValue:
-              !Sub "${lambdaEfsStack}-subnet-id"
+          - Fn::ImportValue: !Sub "${lambdaEfsStack}-subnet-id"
       FileSystemConfigs:
-      - Arn:
-          Fn::ImportValue:
-            !Sub "${lambdaEfsStack}-access-pt-arn"
-        LocalMountPath: /mnt/efs
+        - Arn:
+            Fn::ImportValue: !Sub "${lambdaEfsStack}-access-pt-arn"
+          LocalMountPath: /mnt/efs
 
   unzipRepoArchiveSuccessfulInvocations:
     Type: "AWS::SNS::Topic"
@@ -82,12 +85,42 @@ Resources:
       DisplayName: unzipRepoArchiveSuccessEvents
       TopicName: unzipRepoArchiveSuccessEvents
 
-  awsDocsRepo:
-    Type: AWS::S3::Bucket
-    Properties: 
-      BucketName:
-        Ref: awsDocsRepoBucketName
-      AccessControl: Private
+  createAttrFilesSuccessEvents:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      QueueName: createAttrFilesSuccessEvents
+      VisibilityTimeout: 200
+
+  createAttributeFiles:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: createAttributeFiles
+      Handler: src/create-attribute-files.handler
+      Description: A Lambda that creates attribute files related for CloudFormation entity files in EFS.
+      Environment:
+        Variables:
+          EFS_PATH: "/mnt/efs"
+          SUCC_NOTIFY_SQS: !Ref createAttrFilesSuccessEvents
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonElasticFileSystemClientFullAccess
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "${lambdaEfsStack}-secgroup-id"
+        SubnetIds:
+          - Fn::ImportValue: !Sub "${lambdaEfsStack}-subnet-id"
+      FileSystemConfigs:
+        - Arn:
+            Fn::ImportValue: !Sub "${lambdaEfsStack}-access-pt-arn"
+          LocalMountPath: /mnt/efs
+
+  createAttributeFilesInvoker:
+    Type: "AWS::SNS::Subscription"
+    Properties:
+      Endpoint: !GetAtt createAttributeFiles.Arn
+      Protocol: lambda
+      TopicArn: !Ref unzipRepoArchiveSuccessfulInvocations
 
 Globals:
   Function:
@@ -96,19 +129,18 @@ Globals:
     MemorySize: 256
     Timeout: 180
     Layers:
-      - Fn::ImportValue:
-          !Sub "${awsSdkLayerStack}-arn"
+      - Fn::ImportValue: !Sub "${awsSdkLayerStack}-arn"
 
 Parameters:
-    awsDocsRepoBucketName:
-      Description: Name of the S3 bucket to store AWS docomentation repo.
-      Type: String
-      AllowedPattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
-    awsSdkLayerStack:
-      Description: Stack name of the Lambda layer with Node.js AWS SDK
-      Type: String
-      Default: lib-aws-sdk
-    lambdaEfsStack:
-      Description: Lambda EFS stack name
-      Type: String
-      Default: lambda-efs-vpc
+  awsDocsRepoBucketName:
+    Description: Name of the S3 bucket to store AWS docomentation repo.
+    Type: String
+    AllowedPattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-5][0-9a-fA-F]{3}-[089abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$
+  awsSdkLayerStack:
+    Description: Stack name of the Lambda layer with Node.js AWS SDK
+    Type: String
+    Default: lib-aws-sdk
+  lambdaEfsStack:
+    Description: Lambda EFS stack name
+    Type: String
+    Default: lambda-efs-vpc

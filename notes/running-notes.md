@@ -62,3 +62,9 @@ A Lambda function associated with private subnets needs either of the following 
 OR
 
 λ ==[pvt. subnet RT]==> VPC (Gateway) End Point ==> S3
+
+## Lambda Limits
+
+- File descriptors: 1,024
+
+Ref: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html

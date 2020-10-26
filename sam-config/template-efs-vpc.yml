@@ -77,6 +77,17 @@ Resources:
       VpcEndpointType: Gateway
       VpcId: !Ref efsVpc
 
+  lambdaSqsVpcEndPt:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      SecurityGroupIds:
+        - !GetAtt efsVpc.DefaultSecurityGroup
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.sqs"
+      SubnetIds:
+        - !Ref efsPrivateSubnet
+      VpcEndpointType: Interface
+      VpcId: !Ref efsVpc
+
 Outputs:
   efsVpcArn:
     Description: ARN of custom VPC with EFS endpoit
