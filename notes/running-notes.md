@@ -46,12 +46,14 @@ aws lambda invoke --function-name unzipRepoArchive \
 - Above commands invoke Lambda synchronously. So any async destination will not get invocation record.
 - Add `--invocation-type Event` clause to invoke Lambda asynchronously.
 
-## Lambda, EFS, VPC, and S3
+## Lambda, EFS, VPC, S3, and SQS
 
 - Lambda functions can connect to EFS using Access Points, associated as `FileSystemConfigs`.
 - EFS should have at least one Mount Target.
 - Mount Target is associated with Security Groups and Subnet (only one, linked to an Availability Zone).
 - Lambda function too should be associated with a VPC configuration (Security Groups and Subnets).
+
+### Connecting to S3 from a Lambda associated with a VPC
 
 A Lambda function associated with private subnets needs either of the following to connect to S3:
 - A route to internet via NAT Gateway (of a public subnet) and Internet Gateway (of the VPC) OR
@@ -62,6 +64,19 @@ A Lambda function associated with private subnets needs either of the following 
 OR
 
 λ ==[pvt. subnet RT]==> VPC (Gateway) End Point ==> S3
+
+### SQS and VPC
+
+Ref: https://docs.aws.amazon.com/en_us/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-sending-messages-from-vpc.html
+
+> Important
+> + You can use Amazon Virtual Private Cloud only with HTTPS Amazon SQS endpoints.
+> 
+> + When you configure Amazon SQS to send messages from Amazon VPC, you must enable 
+>   private DNS and specify endpoints in the format `sqs.us-east-2.amazonaws.com`.
+> 
+> + Private DNS doesn't support legacy endpoints such `as queue.amazonaws.com` or
+>   `us-east-2.queue.amazonaws.com`.
 
 ## Lambda Limits
 

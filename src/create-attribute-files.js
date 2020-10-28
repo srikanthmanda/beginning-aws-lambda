@@ -27,6 +27,7 @@ exports.handler = async function (event) {
   console.info(`Created directory ${dataDir}.`);
 
   await createAttributeFiles(inputDir, dataDir);
+  console.log("Attribute files created. Sending message to SQS ...");
   return sqs
     .sendMessage({
       MessageBody: dataDir,

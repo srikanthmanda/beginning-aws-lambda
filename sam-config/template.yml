@@ -24,7 +24,7 @@ Resources:
     Properties:
       FunctionName: getAwsDocsRepo
       Handler: src/get-awsdocs-repo.handler
-      Description: A Lambda that fetches AWS Docs repo from GitHub and uploads to S3.
+      Description: Fetches AWS Docs repo from GitHub and uploads it to S3.
       Environment:
         Variables:
           AWS_DOCS_REPO_BUCKET:
@@ -38,7 +38,7 @@ Resources:
     Properties:
       FunctionName: unzipRepoArchive
       Handler: src/unzip-repo-archive.handler
-      Description: A Lambda that reads the AWS Docs repo in S3 GitHub and unzips it to EFS.
+      Description: Reads AWS Docs repo from S3 and extracts it to EFS.
       Environment:
         Variables:
           EFS_PATH: "/mnt/efs"
@@ -96,7 +96,7 @@ Resources:
     Properties:
       FunctionName: createAttributeFiles
       Handler: src/create-attribute-files.handler
-      Description: A Lambda that creates attribute files related for CloudFormation entity files in EFS.
+      Description: Reads AWS Docs repo folder from EFS and creates CloudFormation attribute files in another EFS folder.
       Environment:
         Variables:
           EFS_PATH: "/mnt/efs"
@@ -105,6 +105,7 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambdaVPCAccessExecutionRole
         - AmazonElasticFileSystemClientFullAccess
+        - AmazonSQSFullAccess
       VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "${lambdaEfsStack}-secgroup-id"
