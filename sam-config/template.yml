@@ -123,6 +123,13 @@ Resources:
       Protocol: lambda
       TopicArn: !Ref unzipRepoArchiveSuccessfulInvocations
 
+  createAttributeFilesInvokePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref createAttributeFiles
+      Principal: sns.amazonaws.com
+
 Globals:
   Function:
     CodeUri: ../sam-build/beginning-lambda.zip

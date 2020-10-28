@@ -46,7 +46,7 @@ aws lambda invoke --function-name unzipRepoArchive \
 - Above commands invoke Lambda synchronously. So any async destination will not get invocation record.
 - Add `--invocation-type Event` clause to invoke Lambda asynchronously.
 
-## Lambda, EFS, VPC, S3, and SQS
+## Lambda, EFS, VPC, S3, SQS, and SNS
 
 - Lambda functions can connect to EFS using Access Points, associated as `FileSystemConfigs`.
 - EFS should have at least one Mount Target.
@@ -77,6 +77,10 @@ Ref: https://docs.aws.amazon.com/en_us/AWSSimpleQueueService/latest/SQSDeveloper
 > 
 > + Private DNS doesn't support legacy endpoints such `as queue.amazonaws.com` or
 >   `us-east-2.queue.amazonaws.com`.
+
+### Lambda and SNS
+
+Besides subscribing Lambda to a SNS topic, additional permission should also be given to SNS principal to invoke Lambda.
 
 ## Lambda Limits
 

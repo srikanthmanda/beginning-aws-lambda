@@ -11,7 +11,7 @@ Following are the components of this [Rube Goldberg application](https://en.wiki
 - [x] Lambda function unzipRepoArchive
 - [x] EFS
 - [x] SNS (Destination)
-- [ ] Lambda function createAttributeFiles
+- [x] Lambda function createAttributeFiles
 - [x] SQS ~~(Destination)~~
 - [ ] Lambda function createCheatSheet
 - [ ] S3 static site
