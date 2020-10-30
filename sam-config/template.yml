@@ -39,6 +39,7 @@ Resources:
       FunctionName: unzipRepoArchive
       Handler: src/unzip-repo-archive.handler
       Description: Reads AWS Docs repo from S3 and extracts it to EFS.
+      ReservedConcurrentExecutions: 1
       Environment:
         Variables:
           EFS_PATH: "/mnt/efs"
@@ -90,6 +91,7 @@ Resources:
     Properties:
       QueueName: createAttrFilesSuccessEvents
       VisibilityTimeout: 200
+      MessageRetentionPeriod: 300
 
   createAttributeFiles:
     Type: AWS::Serverless::Function
@@ -97,6 +99,7 @@ Resources:
       FunctionName: createAttributeFiles
       Handler: src/create-attribute-files.handler
       Description: Reads AWS Docs repo folder from EFS and creates CloudFormation attribute files in another EFS folder.
+      ReservedConcurrentExecutions: 1
       Environment:
         Variables:
           EFS_PATH: "/mnt/efs"
@@ -130,6 +133,49 @@ Resources:
       FunctionName: !Ref createAttributeFiles
       Principal: sns.amazonaws.com
 
+  generateCheatSheet:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: generateCheatSheet
+      Handler: src/generate-cheat-sheet.handler
+      Description: Reads CloudFormation attribute files from EFS, creates a cheatsheet and uploads it to S3.
+      ReservedConcurrentExecutions: 1
+      Environment:
+        Variables:
+          EFS_PATH: "/mnt/efs"
+          AWS_CFN_ATTRS_CHEATSHEET_SITE: !Ref awsCfnAttrsCheatSheetSiteName
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonElasticFileSystemClientFullAccess
+        - AWSLambdaSQSQueueExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "${lambdaEfsStack}-secgroup-id"
+        SubnetIds:
+          - Fn::ImportValue: !Sub "${lambdaEfsStack}-subnet-id"
+      FileSystemConfigs:
+        - Arn:
+            Fn::ImportValue: !Sub "${lambdaEfsStack}-access-pt-arn"
+          LocalMountPath: /mnt/efs
+
+  generateCheatSheetEventSource:
+    Type: "AWS::Lambda::EventSourceMapping"
+    Properties:
+      BatchSize: 1
+      EventSourceArn: !GetAtt createAttrFilesSuccessEvents.Arn
+      FunctionName: !GetAtt generateCheatSheet.Arn
+
+  awsCfnAttrsCheatSheetSite:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Ref awsCfnAttrsCheatSheetSiteName
+      WebsiteConfiguration:
+        ErrorDocument: 404.html
+        IndexDocument: index.md
+
 Globals:
   Function:
     CodeUri: ../sam-build/beginning-lambda.zip
@@ -152,3 +198,7 @@ Parameters:
     Description: Lambda EFS stack name
     Type: String
     Default: lambda-efs-vpc
+  awsCfnAttrsCheatSheetSiteName:
+    Description: Name of the S3 website bucket to store AWS CloudFormation Attributes cheatsheet.
+    Type: String
+    Default: aws-cloudformation-attributes-cheatsheet

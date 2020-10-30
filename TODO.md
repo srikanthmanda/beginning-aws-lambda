@@ -6,3 +6,5 @@
 - [x] Automate creation of S3 bucket for SAM CLI
 - [x] Add Lambda functions test events for [CLI](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/lambda/invoke.html) (not [console](https://github.com/aws/serverless-application-model/issues/475))
 - [x] Script lambda tests
+- [ ] Review notes
+- [ ] Cleanup templates

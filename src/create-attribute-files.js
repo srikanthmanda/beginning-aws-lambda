@@ -26,11 +26,11 @@ exports.handler = async function (event) {
   fs.mkdirSync(dataDir);
   console.info(`Created directory ${dataDir}.`);
 
-  await createAttributeFiles(inputDir, dataDir);
+  const indexFile = await createAttributeFiles(inputDir, dataDir);
   console.log("Attribute files created. Sending message to SQS ...");
   return sqs
     .sendMessage({
-      MessageBody: dataDir,
+      MessageBody: indexFile,
       QueueUrl: successNotificationSqs,
     })
     .promise();
@@ -148,4 +148,5 @@ async function createAttributeFiles(inputDir, outputDir) {
     );
     batchStart = batchEnd;
   }
+  return INDEX_FILE;
 }

@@ -13,24 +13,16 @@ declare -A lambdaFns
 
 function prepareLambdaFnsList {
   templateFile=$1
-  numFunctions=0
-  numHandlers=0
   #grep -E "FunctionName|Handler" ${templateFile} | while IFS= read -r line
   ## http://mywiki.wooledge.org/BashFAQ/024
   while IFS= read -r line
   do
     if [[ ${line} =~ "FunctionName" ]]
     then
-      lastFunction=$(echo ${line} | cut -d ' ' -f 2)
-      (( numFunctions+=1 ))
+      function=$(echo ${line} | cut -d ' ' -f 2)
     else
-      lastHandler=$(echo ${line} | cut -d '/' -f 2 | cut -d '.' -f 1)
-      (( numHandlers+=1 ))
-    fi
-    
-    if [[ numFunctions -eq numHandlers ]]
-    then
-      lambdaFns["${lastFunction}"]="${lastHandler}"
+      handler=$(echo ${line} | cut -d '/' -f 2 | cut -d '.' -f 1)
+      lambdaFns["${function}"]="${handler}"
     fi
   done <<< $(grep -E "FunctionName|Handler" ${templateFile})
 }

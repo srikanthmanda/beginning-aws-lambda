@@ -13,8 +13,8 @@ Following are the components of this [Rube Goldberg application](https://en.wiki
 - [x] SNS (Destination)
 - [x] Lambda function createAttributeFiles
 - [x] SQS ~~(Destination)~~
-- [ ] Lambda function createCheatSheet
-- [ ] S3 static site
+- [x] Lambda function createCheatSheet
+- [x] S3 static site
 
 ## Notes
 

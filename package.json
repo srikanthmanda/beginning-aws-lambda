@@ -1,8 +1,11 @@
 {
   "name": "beginning-aws-lambda",
-  "description": "A repo to learn basics of AWS Lambda",
-  "version": "0.0.1",
-  "private": true,
+  "description": "A package built to learn basics of AWS Lambda",
+  "version": "1.0.0",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/srikanthmanda/beginning-aws-lambda.git"
+  },
   "dependencies": {
     "@octokit/request": "^5.4.9",
     "yauzl": "^2.10.0"
@@ -11,7 +14,7 @@
     "aws-sdk": "2.771.0"
   },
   "scripts": {
-    "build-aws-sdk-layer": "cd lib-aws-sdk && zip -r ../sam-build/aws-sdk.zip nodejs",
-    "build": "zip -r sam-build/beginning-lambda.zip src node_modules"
+    "sampkg-aws-sdk-layer": "cd lib-aws-sdk && zip -r ../sam-build/aws-sdk.zip nodejs",
+    "sampkg": "zip -r sam-build/beginning-lambda.zip src node_modules"
   }
 }
