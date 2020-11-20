@@ -1,8 +1,8 @@
 const fs = require("fs");
-const readline = require("readline");
 
 const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
+const dynoDb = new AWS.DynamoDB();
 
 const rootDir = process.env.EFS_PATH ? process.env.EFS_PATH : "/tmp";
 const cfnAttrFilesDir = process.env.CFN_ATTR_FILES_PATH
@@ -17,9 +17,9 @@ const cfnAttrCheatSheetSite = process.env.AWS_CFN_ATTRS_CHEATSHEET_SITE
 const dataDir = rootDir + "/" + cfnAttrFilesDir;
 
 exports.handler = async function (event) {
-  const indexFile = dataDir + "/" + event.Records[0].body;
+  const indexTable = event.Records[0].body;
   const cheatSheet = dataDir + "/" + cfnAttrCheatSheet;
-  await generateCheatsheet(indexFile, cheatSheet);
+  await generateCheatsheet(indexTable, cheatSheet);
   const s3Params = {
     Bucket: cfnAttrCheatSheetSite,
     Key: "index.md",
@@ -34,7 +34,7 @@ exports.handler = async function (event) {
     .promise();
 };
 
-async function generateCheatsheet(indexFile, cheatSheet) {
+async function generateCheatsheet(indexTable, cheatSheet) {
   const FOOTER =
     "- - -\n" +
     "This document was generated from [AWS CloudFormation User Guide]" +
@@ -43,25 +43,16 @@ async function generateCheatsheet(indexFile, cheatSheet) {
     "(https://github.com/srikanthmanda/aws-cloudformation-attributes).";
   const dataMap = {};
 
-  const rl = readline.createInterface({
-    input: fs.createReadStream(indexFile),
-    crlfDelay: Infinity,
-  });
+  const filesIndex = await dynoDb.scan({ TableName: indexTable }).promise();
+  console.log(JSON.stringify(filesIndex));
+  filesIndex.Items.forEach((e) => {
+    const api = e.api.S;
 
-  for await (const line of rl) {
-    const fields = line.split(",");
-    const entityNames = fields[0].split("::");
-    const api = entityNames[1];
-    const entity = entityNames[2];
-    const attributesFile = fields[1];
-
-    if (dataMap[api]) {
-      dataMap[api][entity] = attributesFile;
-    } else {
+    if (!dataMap[api]) {
       dataMap[api] = {};
-      dataMap[api][entity] = attributesFile;
     }
-  }
+    dataMap[api][e.resource.S] = e.file.S;
+  });
 
   const cheatSheetBody = cheatSheet.replace(/\.md$/, "_body.md");
   fs.writeFileSync(
@@ -74,7 +65,7 @@ async function generateCheatsheet(indexFile, cheatSheet) {
     for (const entity of Object.keys(dataMap[api]).sort()) {
       fs.appendFileSync(
         cheatSheetBody,
-        "\n#" + fs.readFileSync(dataMap[api][entity])
+        "\n#" + fs.readFileSync(dataDir + "/" + dataMap[api][entity])
       );
       fs.appendFileSync(
         cheatSheet,

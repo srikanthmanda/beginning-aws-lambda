@@ -91,6 +91,15 @@ Resources:
       VpcEndpointType: Interface
       VpcId: !Ref efsVpc
 
+  dynamoDbVpcEndpoint:
+    Type: "AWS::EC2::VPCEndpoint"
+    Properties:
+      RouteTableIds:
+        - !Ref efsVpcPrivateRouteTable
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.dynamodb"
+      VpcEndpointType: Gateway
+      VpcId: !Ref efsVpc
+
 Outputs:
   efsVpcArn:
     Description: ARN of custom VPC with EFS endpoit

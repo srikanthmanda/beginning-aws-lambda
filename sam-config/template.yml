@@ -109,6 +109,8 @@ Resources:
         - AWSLambdaVPCAccessExecutionRole
         - AmazonElasticFileSystemClientFullAccess
         - AmazonSQSFullAccess
+        - DynamoDBWritePolicy:
+            TableName: cfnAttributeFilesIndex
       VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "${lambdaEfsStack}-secgroup-id"
@@ -133,6 +135,22 @@ Resources:
       FunctionName: !Ref createAttributeFiles
       Principal: sns.amazonaws.com
 
+  cloudFormationDocsIndex:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: cfnAttributeFilesIndex
+      AttributeDefinitions:
+        - AttributeName: api
+          AttributeType: S
+        - AttributeName: resource
+          AttributeType: S
+      KeySchema:
+        - AttributeName: api
+          KeyType: HASH
+        - AttributeName: resource
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
   generateCheatSheet:
     Type: AWS::Serverless::Function
     Properties:
@@ -150,6 +168,8 @@ Resources:
         - AWSLambdaVPCAccessExecutionRole
         - AmazonElasticFileSystemClientFullAccess
         - AWSLambdaSQSQueueExecutionRole
+        - DynamoDBReadPolicy:
+            TableName: cfnAttributeFilesIndex
       VpcConfig:
         SecurityGroupIds:
           - Fn::ImportValue: !Sub "${lambdaEfsStack}-secgroup-id"

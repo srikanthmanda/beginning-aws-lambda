@@ -3,6 +3,7 @@ const readline = require("readline");
 
 const AWS = require("aws-sdk");
 const sqs = new AWS.SQS();
+const dynoDb = new AWS.DynamoDB();
 
 const successNotificationSqs = process.env.SUCC_NOTIFY_SQS;
 const rootDir = process.env.EFS_PATH ? process.env.EFS_PATH : "/tmp";
@@ -11,7 +12,10 @@ const cfnAttrFilesDir = process.env.CFN_ATTR_FILES_PATH
   : "aws-cloudformation-attributes";
 const batchSize = process.env.FILE_BATCH_SIZE
   ? process.env.FILE_BATCH_SIZE
-  : 50;
+  : 25;
+const indexTable = process.env.ATTR_FILES_INDEX_TABLE
+  ? process.env.ATTR_FILES_INDEX_TABLE
+  : "cfnAttributeFilesIndex";
 
 const dataDir = rootDir + "/" + cfnAttrFilesDir;
 
@@ -26,11 +30,11 @@ exports.handler = async function (event) {
   fs.mkdirSync(dataDir);
   console.info(`Created directory ${dataDir}.`);
 
-  const indexFile = await createAttributeFiles(inputDir, dataDir);
+  await createAttributeFiles(inputDir, dataDir);
   console.log("Attribute files created. Sending message to SQS ...");
   return sqs
     .sendMessage({
-      MessageBody: indexFile,
+      MessageBody: indexTable,
       QueueUrl: successNotificationSqs,
     })
     .promise();
@@ -62,6 +66,7 @@ function createAttributesFile(input, outputDir, indexFile) {
     let hasReturnValues = false;
     let linesRead = 0;
     let entity;
+    let entityDetails;
 
     for await (const line of rl) {
       linesRead++;
@@ -84,6 +89,10 @@ function createAttributesFile(input, outputDir, indexFile) {
     attributesFile.end();
 
     if (hasReturnValues) {
+      entityDetails = {
+        entity: entity.split("::").slice(1),
+        file: output.split("/").reverse()[0],
+      };
       fs.appendFileSync(indexFile, entity + "," + output + "\n");
       console.debug("Index updated for " + input);
       console.debug("Lines read in " + input + ": " + linesRead);
@@ -97,7 +106,8 @@ function createAttributesFile(input, outputDir, indexFile) {
         }
       });
     }
-    resolve();
+    console.log(`Processed file: ${input}`);
+    resolve(entityDetails);
   });
 }
 
@@ -132,21 +142,34 @@ async function createAttributeFiles(inputDir, outputDir) {
     let batchEnd = batchStart + batchSize;
     batchEnd = batchEnd < lastBatchEnd ? batchEnd : lastBatchEnd;
     console.log(`Batch: ${batchStart} - ${batchEnd - 1}`);
-    await Promise.all(
-      docFiles.slice(batchStart, batchEnd).map(async (docFile) => {
-        try {
-          await createAttributesFile(
-            inputDir + "/" + docFile,
-            outputDir,
-            indexFile
-          );
-        } catch (error) {
-          console.error("Error processing " + docFile);
-          throw error;
-        }
-      })
+    const attributeFiles = await Promise.all(
+      docFiles
+        .slice(batchStart, batchEnd)
+        .map((docFile) =>
+          createAttributesFile(inputDir + "/" + docFile, outputDir, indexFile)
+        )
     );
+    if (attributeFiles.filter(Boolean).length) {
+      await storeRecords(attributeFiles.filter((e) => e));
+    }
     batchStart = batchEnd;
   }
   return INDEX_FILE;
+}
+
+async function storeRecords(indexBatch) {
+  const itemsBatch = {
+    RequestItems: {
+      cfnAttributeFilesIndex: indexBatch.map((e) => ({
+        PutRequest: {
+          Item: {
+            api: { S: e.entity[0] },
+            resource: { S: e.entity[1] },
+            file: { S: e.file },
+          },
+        },
+      })),
+    },
+  };
+  await dynoDb.batchWriteItem(itemsBatch).promise();
 }

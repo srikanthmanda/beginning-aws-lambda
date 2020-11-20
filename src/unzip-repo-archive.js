@@ -10,14 +10,14 @@ const repoDir = process.env.REPO_PATH
   : "aws-cloudformation-user-guide";
 const unzipDir = rootDir + "/" + repoDir;
 
-if (!fs.existsSync(unzipDir)) {
-  fs.mkdirSync(unzipDir);
-  console.info(`Created directory: ${unzipDir}`);
-} else {
-  console.info(`Directory ${unzipDir} exists.`);
-}
-
 exports.handler = async function (event) {
+  if (fs.existsSync(unzipDir)) {
+    fs.rmdirSync(unzipDir, { recursive: true });
+    console.info(`Deleted directory: ${unzipDir}.`);
+  }
+  fs.mkdirSync(unzipDir);
+  console.info(`Created directory ${unzipDir}.`);
+
   const repoObject = await s3
     .getObject({
       Bucket: event.Records[0].s3.bucket.name,

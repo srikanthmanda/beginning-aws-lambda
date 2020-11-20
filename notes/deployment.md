@@ -101,7 +101,7 @@ Enter `getAwsDocsRepo` at above prompt.
 
 Once the test completes, abort the script using `Ctrl`+`C` keyboard command.
 
-A few minutes later, the cheatsheet should be available at `http://aws-cloudformation-attributes-cheatsheet.s3-website.us-east-1.amazonaws.com/`.
+A few minutes later, the cheatsheet should be available at http://aws-cloudformation-attributes-cheatsheet.s3-website.us-east-1.amazonaws.com/.
 
 Note that in the URL:
 
